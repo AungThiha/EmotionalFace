@@ -2,6 +2,8 @@ package com.raywenderlich.emotionalface
 
 import android.content.Context
 import android.graphics.*
+import android.os.Bundle
+import android.os.Parcelable
 import android.util.AttributeSet
 import android.view.View
 import kotlin.math.min
@@ -46,6 +48,38 @@ class EmotionalFaceView @JvmOverloads constructor(
         setupAttributes(attrs)
     }
 
+    override fun onDraw(canvas: Canvas) {
+        // call the super method to keep any drawing from the parent side.
+        super.onDraw(canvas)
+
+        drawFaceBackground(canvas)
+        drawEyes(canvas)
+        drawMouth(canvas)
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {      super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        size = min(measuredWidth, measuredHeight)
+        setMeasuredDimension(size, size)
+    }
+
+    override fun onSaveInstanceState(): Parcelable {
+        val bundle = Bundle()
+        bundle.putLong("happinessState", happinessState)
+        bundle.putParcelable("superState", super.onSaveInstanceState())
+        return bundle
+    }
+
+    override fun onRestoreInstanceState(state: Parcelable) {
+        var viewState = state
+        if (viewState is Bundle) {
+            happinessState = viewState.getLong("happinessState", HAPPY)
+            viewState.getParcelable<Parcelable>("superState")?.also{
+                viewState = it
+            }
+        }
+        super.onRestoreInstanceState(viewState)
+    }
+
     private fun setupAttributes(attrs: AttributeSet?) {
         // Obtain a typed array of attributes
         val typedArray = context.theme.obtainStyledAttributes(attrs, R.styleable.EmotionalFaceView,
@@ -64,16 +98,6 @@ class EmotionalFaceView @JvmOverloads constructor(
         // TypedArray objects are shared and must be recycled.
         typedArray.recycle()
     }
-
-    override fun onDraw(canvas: Canvas) {
-        // call the super method to keep any drawing from the parent side.
-        super.onDraw(canvas)
-
-        drawFaceBackground(canvas)
-        drawEyes(canvas)
-        drawMouth(canvas)
-    }
-
 
     private fun drawFaceBackground(canvas: Canvas) {
         paint.color = faceColor
@@ -115,11 +139,6 @@ class EmotionalFaceView @JvmOverloads constructor(
 
         canvas.drawPath(mouthPath, paint)
 
-    }
-
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {      super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        size = min(measuredWidth, measuredHeight)
-        setMeasuredDimension(size, size)
     }
 
 
